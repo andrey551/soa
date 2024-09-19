@@ -2,9 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.tad.itmo.Entities;
+package com.tad.itmo.DTO;
 
-import com.tad.itmo.Entities.Enums.Status;
+import com.tad.itmo.DTO.Enums.Status;
 //import jakarta.persistence.Entity;
 import lombok.*;
 
@@ -19,7 +19,6 @@ public class Worker {
     private String name; //Поле не может быть null, Строка не может быть пустой
     private Coordinates coordinates; //Поле не может быть null
     private java.time.ZonedDateTime creationDate; //Поле не может быть null, Значение этого поля должно генерироваться автоматически
-//    @Size(min = 0, message = "Значение поля должно быть больше 0")
     private float salary; //Значение поля должно быть больше 0
     private java.util.Date startDate; //Поле не может быть null
     private java.util.Date endDate; //Поле может быть null
