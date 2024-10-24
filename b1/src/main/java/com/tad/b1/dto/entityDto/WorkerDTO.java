@@ -1,0 +1,136 @@
+
+package com.tad.b1.dto.entityDto;
+
+import com.tad.b1.controller.LocalDateAdapter;
+import com.tad.b1.entity.enums.Status;
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ *
+ * @author Dau Cong Tuan Anh
+ */
+
+@Getter
+@Setter
+@XmlRootElement(name = "WorkerDTO")
+public class WorkerDTO {
+    
+    @NotNull
+    @Positive
+    private Integer id; //Поле не может быть null, Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
+    
+    @NotNull
+    @NotBlank
+    private String name; //Поле не может быть null, Строка не может быть пустой
+    
+    @NotNull
+    private CoordinateDTO coordinates; //Поле не может быть null
+    
+    @NotNull
+    private java.time.ZonedDateTime creationDate; //Поле не может быть null, Значение этого поля должно генерироваться автоматически
+    
+    @Positive
+    private int salary; //Значение поля должно быть больше 0
+    
+    @NotNull
+    private java.time.LocalDate startDate; //Поле не может быть null
+    
+    @Nullable
+    private java.time.LocalDate endDate; //Поле может быть null
+    
+    @NotNull
+    private Status status; //Поле не может быть null
+    
+    @Nullable
+    private PersonDTO person; //Поле может быть null
+    
+    public WorkerDTO() {
+        this.creationDate = ZonedDateTime.now();
+    }
+    
+    public WorkerDTO(Integer id, 
+            String name, 
+            CoordinateDTO coordinates, 
+            int salary, 
+            LocalDate startDate, 
+            LocalDate endDate,
+            Status status,
+            PersonDTO person) {
+        this.id = id;
+        this.name = name;
+        this.coordinates = coordinates;
+        this.creationDate = ZonedDateTime.now();
+        this.salary = salary;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.status = status;
+        this.person = person;
+    }
+    
+
+    
+    public WorkerDTO(
+            String name, 
+            CoordinateDTO coordinates, 
+            int salary, 
+            LocalDate startDate, 
+            LocalDate endDate,
+            Status status,
+            PersonDTO person) {
+        this.name = name;
+        this.coordinates = coordinates;
+        this.creationDate = ZonedDateTime.now();
+        this.salary = salary;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.status = status;
+        this.person = person;
+    }
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
+    public LocalDate getStartDate() {
+        return this.startDate;
+    }
+    
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
+    public LocalDate getEndDate() {
+        return this.endDate;
+    }
+    
+    @Override
+    public String toString() {
+        return  "Name: "
+                + this.name 
+                + " X: " 
+                + this.coordinates.getX() 
+                + " Y: " 
+                + this.coordinates.getY()
+                + " creationDate: " 
+                + this.creationDate
+                + " salary: " 
+                + this.salary
+                + " startDate: "
+                + this.startDate
+                + " endDate: " 
+                + this.endDate
+                + " status: "
+                + this.status
+                + " Weight: "
+                + this.person.getWeight()
+                + " PassportID: "
+                + this.person.getPassportID()
+                + " EyeColor: "
+                + this.person.getEyeColor()
+                + " HairColor: "
+                + this.person.getHairColor();
+                
+    }
+}
