@@ -121,7 +121,7 @@ public class WorkerService {
                     ).setParameter(1, id)
                     .getSingleResult();
             if(worker == null)
-                return new ServiceResponse(ServiceResponseStatus.FAIL);
+                return new ServiceResponse(ServiceResponseStatus.INVALID_PARAMETER);
             commit();
             return new ServiceResponse(ServiceResponseStatus.SUCCESS, worker);
         } catch (Exception e) {
@@ -138,7 +138,7 @@ public class WorkerService {
                     .find(Worker.class, id);
             
             if(workerToUpdate == null) 
-                return new ServiceResponse(ServiceResponseStatus.FAIL);
+                return new ServiceResponse(ServiceResponseStatus.INVALID_PARAMETER);
             entityManager.persist(
                     new Coordinate(
                             worker.getCoordinates().getX(), 
@@ -181,7 +181,7 @@ public class WorkerService {
             Worker workerToDelete = (Worker)entityManager
                     .find(Worker.class, id);
             if(workerToDelete == null) 
-                return new ServiceResponse(ServiceResponseStatus.FAIL);
+                return new ServiceResponse(ServiceResponseStatus.INVALID_PARAMETER);
             entityManager.remove(workerToDelete);
             commit();
         } catch( Exception e) {
@@ -278,6 +278,23 @@ public class WorkerService {
             entityManager.merge(worker);
             commit();
             return new ServiceResponse(ServiceResponseStatus.SUCCESS);
+        } catch( Exception e) {
+            e.printStackTrace();
+           return new ServiceResponse(ServiceResponseStatus.INTERNAL_ERROR);
+        }
+    }
+    
+    public ServiceResponse isBelongToOrganization(Long id, Long orgId) {
+        try{
+            begin();
+            Worker worker = (Worker)entityManager
+                    .find(Worker.class, id);
+            if(worker == null)
+                return new ServiceResponse(ServiceResponseStatus.INVALID_PARAMETER, "Worker is found");
+            commit();
+            if(worker.getOrganization() == orgId) 
+                return new ServiceResponse(ServiceResponseStatus.SUCCESS);
+            return new ServiceResponse(ServiceResponseStatus.INVALID_PARAMETER, "Worker is not working for organization with id" + orgId);
         } catch( Exception e) {
             e.printStackTrace();
            return new ServiceResponse(ServiceResponseStatus.INTERNAL_ERROR);

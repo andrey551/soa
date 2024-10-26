@@ -3,6 +3,7 @@ package com.tad.b1.dto.entityDto;
 
 import com.tad.b1.controller.LocalDateAdapter;
 import com.tad.b1.entity.enums.Status;
+import com.tad.b1.entity.enums.WorkerParameter;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,6 +12,8 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -132,5 +135,35 @@ public class WorkerDTO {
                 + " HairColor: "
                 + this.person.getHairColor();
                 
+    }
+    
+    public List<WorkerParameter> handleValidate() {
+        List<WorkerParameter> res = new ArrayList<>();
+        
+        if(id < 0 || id == null) res.add(WorkerParameter.ID);
+        
+        if(name == null || name.isBlank()) res.add(WorkerParameter.NAME);
+        
+        if(coordinates == null) res.add(WorkerParameter.COORDINATES);
+        
+        if(coordinates.getX() == null ) res.add(WorkerParameter.X);
+        
+        if(creationDate == null) res.add(WorkerParameter.CREATION_DATE);
+        
+        if( salary < 0) res.add(WorkerParameter.SALARY);
+        
+        if(startDate == null) res.add(WorkerParameter.START_DATE);
+        
+        if(status == null) res.add(WorkerParameter.STATUS);
+        
+        if(person.getWeight() <= 0) res.add(WorkerParameter.WEIGHT);
+        
+        if(person.getPassportID() == null) res.add(WorkerParameter.PASSPORT_ID);
+        
+        if(person.getEyeColor() == null) res.add(WorkerParameter.EYE_COLOR);
+        
+        if(person.getHairColor() == null) res.add(WorkerParameter.HAIR_COLOR);
+        
+        return res; 
     }
 }

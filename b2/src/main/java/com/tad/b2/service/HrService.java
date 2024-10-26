@@ -25,9 +25,9 @@ public class HrService {
     
     private static String FIRE_REQUEST_URL = "http://127.0.0.1:8080/b1-1.0/resources/workers/status";
     private static String MOVE_REQUEST_URL = "http://127.0.0.1:8080/b1-1.0/resources/workers/org";
+    private static String CHECK_VALID_EMPLOYEE = "http://127.0.0.1:8080/b1-1.0/resources/workers/check/";
     
-//    EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("tad-node2");
-//    EntityManager entityManager = entityManagerFactory.createEntityManager();
+    private static int SUCCESS = 200;
     
     Client client = ClientBuilder.newClient();
 
@@ -45,48 +45,23 @@ public class HrService {
     }
     
     public Response moveEmployee(long userId, long fromOrgId, long toOrgId) {
-        try{
-//            begin();
-            
-//            Organization fromOrg = entityManager.find(Organization.class, fromOrgId);
-//            
-//            if(fromOrg == null) 
-//                return Response.status(500).build();
-//            
-//            Organization toOrg = entityManager.find(Organization.class, toOrgId);
-//            
-//            if(toOrg == null) 
-//                return Response.status(500).build();
-            
-            WebTarget target = client.target(MOVE_REQUEST_URL );
-
-            ChangeOrganizationRequest data = new ChangeOrganizationRequest(userId, toOrgId);
-
-            Entity entity = Entity.entity(data, MediaType.APPLICATION_XML);
-
-            Response response = target.request().put(entity);
-
-            return response;           
-        } catch (Exception e) {
-            
-        }
         
-        return Response.status(503).build();
+        WebTarget checkEmloyee = client.target(CHECK_VALID_EMPLOYEE + userId+ "/" + fromOrgId);
+
+        Response responseCheckEmployee = checkEmloyee.request().get();
+        
+        if(responseCheckEmployee.getStatus() != SUCCESS) 
+            return responseCheckEmployee;
+        
+        WebTarget target = client.target(MOVE_REQUEST_URL );
+
+        ChangeOrganizationRequest data = new ChangeOrganizationRequest(userId, toOrgId);
+
+        Entity entity = Entity.entity(data, MediaType.APPLICATION_XML);
+
+        Response response = target.request().put(entity);
+
+        return response;            
     }
     
-//    public EntityManager getManager() {
-//        return this.entityManager;
-//    }
-//
-//    public void begin() {
-//        entityManager.getTransaction().begin();
-//    }
-//
-//    public void commit() {
-//        entityManager.getTransaction().commit();
-//    }
-//    
-//    public void rollback() {
-//        entityManager.getTransaction().rollback();
-//    }
 }

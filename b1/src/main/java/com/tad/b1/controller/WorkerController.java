@@ -12,6 +12,7 @@ import com.tad.b1.dto.entityDto.PersonDTO;
 import com.tad.b1.dto.entityDto.WorkerDTO;
 import com.tad.b1.entity.enums.Color;
 import com.tad.b1.entity.enums.Status;
+import com.tad.b1.entity.enums.WorkerParameter;
 import com.tad.b1.entity.response.ServiceResponseStatus;
 import com.tad.b1.service.WorkerService;
 import com.tad.b1.utils.XmlService;
@@ -28,6 +29,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 /**
  *
@@ -41,22 +43,6 @@ public class WorkerController {
     @GET
     @Path("/")
     public Response getWorkers() {
-        CoordinateDTO coor = new CoordinateDTO(1, 20.0f);
-        PersonDTO person = new PersonDTO(15L, "C548", Color.GREEN, Color.GREEN);
-        System.out.println(ZonedDateTime.now());
-        System.out.println(LocalDate.now());
-        System.out.println(LocalDate.now().plusDays(1));
-        WorkerDTO worker = new WorkerDTO(
-                1, 
-                "tad", 
-                coor, 
-                12,
-                LocalDate.now(),
-                LocalDate.now().plusDays(1),
-                Status.HIRED,
-                person);
-        
-        System.out.print(XmlService.marshalWorkerDTO(worker));
         
         ServiceResponse resp = ws.getWorkers();
         
@@ -75,6 +61,7 @@ public class WorkerController {
     @Consumes({MediaType.APPLICATION_XML})
     public Response getWorkers(@PathParam("id")long id) {
         
+        
         ServiceResponse resp = ws.getWorkerById(id);
         
         if(resp.getStatus() != ServiceResponseStatus.SUCCESS) 
@@ -91,8 +78,13 @@ public class WorkerController {
     @Consumes({MediaType.APPLICATION_XML})
     public Response updateWorker(
             @PathParam(value = "id") long id,
-            @Valid WorkerDTO worker) {
+            WorkerDTO worker) {
+        List<WorkerParameter> isValid = worker.handleValidate();
         
+        if(!isValid.isEmpty()) {
+            String message = "<message>" + "these parameter has invalid: " + isValid.toString() +"</message>";
+            return Response.status(400).entity(message).build();
+        }
         ServiceResponse resp = ws.updateWorker(id, worker);
         
         return Response.status(resp.getResponseCode()).build();
@@ -113,8 +105,14 @@ public class WorkerController {
     @Path("/")
     @Produces({ MediaType.APPLICATION_XML})
     @Consumes({MediaType.APPLICATION_XML})
-    public Response addWorker(@Valid WorkerDTO worker) {
-        System.out.println(worker.toString());
+    public Response addWorker(WorkerDTO worker) {
+        
+        List<WorkerParameter> isValid = worker.handleValidate();
+        
+        if(!isValid.isEmpty()) {
+            String message = "<message>" + "these parameter has invalid: " + isValid.toString() +"</message>";
+            return Response.status(400).entity(message).build();
+        }
         ServiceResponse resp = ws.insertWorker(worker);
         
         if(resp.getStatus() != ServiceResponseStatus.SUCCESS) 
@@ -131,7 +129,11 @@ public class WorkerController {
     @Path("low-salary/{salary}")
     @Produces({ MediaType.APPLICATION_XML})
     @Consumes({MediaType.APPLICATION_XML})
-    public Response getLowSalary(@PathParam("salary")int salary) {
+    public Response getLowSalary(@PathParam("salary")Integer salary) {
+        if(salary == null) {
+            String message = "<message> Salary is invalid! </message>";
+            return Response.status(400).entity(message).build();
+        }
         ServiceResponse resp = ws.getLowerSalaryWorker(salary);
         
         if(resp.getStatus() != ServiceResponseStatus.SUCCESS) 
@@ -197,5 +199,14 @@ public class WorkerController {
         ServiceResponse resp = ws.updateOrganization(req.getId(), req.getEmId());
         
         return Response.status(resp.getResponseCode()).build();
+    }
+    
+    @GET
+    @Path("check/{id}/{org_id}")
+    public Response checkValidEmployee(@PathParam("id") Long id,
+                                        @PathParam("org_id") Long org_id) {
+        ServiceResponse resp = ws.isBelongToOrganization(id, org_id);
+        
+        return Response.status(resp.getResponseCode()).entity(resp.getData()).build();
     }
 }
