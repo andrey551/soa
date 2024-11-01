@@ -21,12 +21,19 @@ import java.util.logging.Logger;
 public class XmlService {
     public static String marshal(Worker x) {
         try {
+            
             JAXBContext context = JAXBContext.newInstance(Worker.class);
+            
             Marshaller mar= context.createMarshaller();
+            
             mar.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+            
             StringWriter sw = new StringWriter();
+            
             mar.marshal(x, sw);
+            
             return sw.toString();
+            
         } catch (JAXBException ex) {
               
         }
@@ -36,12 +43,19 @@ public class XmlService {
     
     public static String marshalArray(GroupNameWrapper wrapper) {
         try{
+            
             JAXBContext context = JAXBContext.newInstance(GroupNameWrapper.class);
+            
             Marshaller marshaller = context.createMarshaller();
+            
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+            
             StringWriter sw = new StringWriter();
+            
             marshaller.marshal(wrapper, sw);
+            
             return sw.toString();
+            
         } catch(JAXBException ex) {
             
         }
@@ -51,12 +65,19 @@ public class XmlService {
      
     public static String marshalArray(WorkerListWrapper wrapper) {
         try{
+            
             JAXBContext context = JAXBContext.newInstance(WorkerListWrapper.class);
+            
             Marshaller marshaller = context.createMarshaller();
+            
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+            
             StringWriter sw = new StringWriter();
+            
             marshaller.marshal(wrapper, sw);
+            
             return sw.toString();
+            
         } catch(JAXBException ex) {
             
         }
@@ -66,12 +87,17 @@ public class XmlService {
     
     public static Worker unmarshal(String xmlStr) {
         try {
+            
             JAXBContext context = JAXBContext.newInstance(Worker.class);
+            
             Unmarshaller unmarshaller = context.createUnmarshaller();
+            
             StringReader reader = new StringReader(xmlStr);
+            
             Worker worker = (Worker)unmarshaller.unmarshal(reader);
             
             return worker;
+            
         } catch (JAXBException ex) {
               
         }
@@ -82,14 +108,20 @@ public class XmlService {
     public static String marshalWorkerDTO(WorkerDTO worker) {
             
         try {
+            
             JAXBContext context = JAXBContext.newInstance(WorkerDTO.class);
+            
             Marshaller marshaller = context.createMarshaller();
+            
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+            
             StringWriter sw = new StringWriter();
+            
             marshaller.marshal(worker, sw);
+            
             return sw.toString();
+            
         } catch (JAXBException ex) {
-            Logger.getLogger(XmlService.class.getName()).log(Level.SEVERE, null, ex);
         }
             return null;
     }

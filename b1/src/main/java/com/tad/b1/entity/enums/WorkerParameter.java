@@ -29,4 +29,38 @@ public enum WorkerParameter {
     public static WorkerParameter fromValue(String v) {
         return valueOf(v);
     }
+    
+    public static WorkerParameter convert(String v) {
+        switch(v) {
+            case "id" :
+                return WorkerParameter.ID;
+            case "name":
+                return WorkerParameter.NAME;
+            case "creationDate":
+                return WorkerParameter.CREATION_DATE;
+            case "salary":
+                return WorkerParameter.SALARY;
+            case "startDate":
+                return WorkerParameter.START_DATE;
+            case "endDate":
+                return WorkerParameter.END_DATE;
+            case "status":
+                return WorkerParameter.STATUS;
+            default:
+                return null;
+        }
+    }
+    
+    public static String toColumnName(WorkerParameter param) {
+        switch(param) {
+            case CREATION_DATE:
+                return "creationdate";
+            case START_DATE:
+                return "startdate";
+            case END_DATE:
+                return "enddate";
+            default:
+                return param.value().toLowerCase();
+        }
+    }
 }

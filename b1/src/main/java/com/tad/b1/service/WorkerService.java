@@ -6,8 +6,10 @@ import com.tad.b1.dto.data.ServiceResponse;
 import com.tad.b1.dto.entityDto.GroupName;
 import com.tad.b1.entity.Worker;
 import com.tad.b1.dto.Wrapper.WorkerListWrapper;
-import com.tad.b1.dto.data.Filter;
+import com.tad.b1.dto.query.Filter;
 import com.tad.b1.dto.entityDto.WorkerDTO;
+import com.tad.b1.dto.query.QueryParameter;
+import com.tad.b1.dto.query.Sorter;
 import com.tad.b1.entity.Coordinate;
 import com.tad.b1.entity.Person;
 import com.tad.b1.entity.enums.SortMode;
@@ -21,16 +23,13 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
-import jakarta.persistence.Tuple;
 import jakarta.persistence.metamodel.EntityType;
-import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.PersistenceContext;
 
 /**
  *
@@ -49,7 +48,7 @@ public class WorkerService {
             for (EntityType<?> entity : entities) {
                 System.out.println(entity.getName());
             }
-            System.out.println("All entities has printed");
+            
             begin();
             entityManager.persist(
                     new Coordinate(
@@ -63,7 +62,7 @@ public class WorkerService {
                             dto.getPerson().getEyeColor(),
                             dto.getPerson().getHairColor()));
             commit();
-            System.out.println("persisted coordinates and person");
+            
             begin();
             
             Coordinate newCoordinate = entityManager.createQuery("SELECT w FROM Coordinate w ORDER BY w.id DESC", Coordinate.class)
@@ -73,13 +72,13 @@ public class WorkerService {
                                                 .setMaxResults(1)
                                                 .getSingleResult();
             commit();
-            System.out.println("found coordinates and person");
+            
             begin();
             worker.setCoordinate(newCoordinate);
             worker.setPerson(newPerson);
             entityManager.persist(worker);
             commit();
-            System.out.println("inserted worker");
+            
             begin();
             String query = "SELECT w FROM Worker w ORDER BY w.id DESC";
             Worker workerToReturn = (Worker)entityManager
@@ -106,7 +105,64 @@ public class WorkerService {
                     new WorkerListWrapper(res));
             
         } catch(Exception e) {
-            e.printStackTrace();
+            return new ServiceResponse(ServiceResponseStatus.INTERNAL_ERROR);
+        }
+    }
+    
+    public ServiceResponse getWorkers(QueryParameter query) {
+        String queryStr = "SELECT * FROM worker";
+        
+        if(query.getFilters() != null) {
+            
+            queryStr += " WHERE ";
+            
+            for(Filter filter : query.getFilters()) {
+                
+                queryStr += filter.getParam().value().toLowerCase()
+                        + " = " + filter.getValue() 
+                        + " AND ";
+                
+            }
+            
+            queryStr = queryStr.substring(0, queryStr.length() - 5);
+        }
+        
+        if(query.getSorters() != null) {
+            
+            queryStr += " ORDER BY";
+            
+            for(Sorter sorter : query.getSorters()) {
+                
+                queryStr += " " 
+                        + WorkerParameter.toColumnName( sorter.getParam()) 
+                        + " " 
+                        + sorter.getMode().value()
+                        + ",";
+            }
+            
+            queryStr = queryStr.substring(0, queryStr.length() - 1);
+            
+        }
+        
+        if(query.getPageSize() != null) {
+            queryStr += " LIMIT " +  query.getPageSize();
+        }
+        
+        if(query.getPage() != null) {
+            queryStr += " OFFSET " + query.getPage();
+        }
+        
+        queryStr += ";";
+        
+        try{
+            ArrayList<Worker> res =  (ArrayList<Worker>)entityManager
+                .createNativeQuery(queryStr, Worker.class)
+                .getResultList();
+            return new ServiceResponse(
+                    ServiceResponseStatus.SUCCESS, 
+                    new WorkerListWrapper(res));
+            
+        } catch(Exception e) {
             return new ServiceResponse(ServiceResponseStatus.INTERNAL_ERROR);
         }
     }
@@ -114,20 +170,28 @@ public class WorkerService {
     public ServiceResponse getWorkerById(long id) {
         try{
             begin();
+            
             Worker worker = (Worker)entityManager
                     .createQuery(
                             "SELECT a FROM Worker a WHERE a.id = ?1", 
                             Worker.class
                     ).setParameter(1, id)
                     .getSingleResult();
-            if(worker == null)
-                return new ServiceResponse(ServiceResponseStatus.INVALID_PARAMETER);
+            
             commit();
-            return new ServiceResponse(ServiceResponseStatus.SUCCESS, worker);
+            if(worker == null)
+                return new ServiceResponse(
+                        ServiceResponseStatus.INVALID_PARAMETER);
+            
+            
+            return new ServiceResponse(
+                    ServiceResponseStatus.SUCCESS, worker);
         } catch (Exception e) {
-            e.printStackTrace();
+            
             rollback();
-            return new ServiceResponse(ServiceResponseStatus.INTERNAL_ERROR);
+            
+            return new ServiceResponse(
+                    ServiceResponseStatus.INTERNAL_ERROR);
         }
     }
     
@@ -139,10 +203,12 @@ public class WorkerService {
             
             if(workerToUpdate == null) 
                 return new ServiceResponse(ServiceResponseStatus.INVALID_PARAMETER);
+            
             entityManager.persist(
                     new Coordinate(
                             worker.getCoordinates().getX(), 
                             worker.getCoordinates().getY()));
+            
             Coordinate newCoordinate = entityManager.createQuery("SELECT w FROM Coordinate w ORDER BY w.id DESC", Coordinate.class)
                                                 .setMaxResults(1)
                                                 .getSingleResult();
@@ -152,6 +218,7 @@ public class WorkerService {
                             worker.getPerson().getPassportID(),
                             worker.getPerson().getEyeColor(),
                             worker.getPerson().getHairColor()));
+            
             Person newPerson = entityManager.createQuery("SELECT w FROM Person w ORDER BY w.id DESC", Person.class)
                                                 .setMaxResults(1)
                                                 .getSingleResult();
@@ -164,8 +231,11 @@ public class WorkerService {
                     worker.getEndDate(),
                     worker.getStatus(), 
                     newPerson);
+            
             entityManager.merge(workerToUpdate);
+            
             commit();
+            
         } catch( Exception e) {
             e.printStackTrace();
             rollback();
@@ -177,15 +247,19 @@ public class WorkerService {
     
     public ServiceResponse deleteWorker(long id ) {
         try{
+            
             begin();
+            
             Worker workerToDelete = (Worker)entityManager
                     .find(Worker.class, id);
+            
             if(workerToDelete == null) 
                 return new ServiceResponse(ServiceResponseStatus.INVALID_PARAMETER);
             entityManager.remove(workerToDelete);
+            
             commit();
+            
         } catch( Exception e) {
-            e.printStackTrace();
             rollback();
             return new ServiceResponse(ServiceResponseStatus.INTERNAL_ERROR);
         }
@@ -196,10 +270,71 @@ public class WorkerService {
     public ServiceResponse getLowerSalaryWorker(int salary) {
         try{
             begin();
+            
             ArrayList<Worker> listWorkers = (ArrayList<Worker>)entityManager
                     .createQuery("SELECT a FROM Worker a where a.salary < ?1")
                     .setParameter(1, salary)
                     .getResultList();
+            
+            commit();
+            
+            return new ServiceResponse(ServiceResponseStatus.SUCCESS,
+                                        new WorkerListWrapper(listWorkers));
+        } catch( Exception e) {
+            e.printStackTrace();
+           return new ServiceResponse(ServiceResponseStatus.INTERNAL_ERROR);
+        }
+    }
+    
+    public ServiceResponse getLowerSalaryWorker(int salary, 
+                                                QueryParameter query) {
+        String queryStr = "SELECT * FROM worker where salary < " + salary;
+        
+        if(query.getFilters() != null) {
+            
+            for(Filter filter : query.getFilters()) {
+                
+                queryStr += " AND "
+                        + filter.getParam().value().toLowerCase()
+                        + " = " + filter.getValue() ;
+                
+            }
+        }
+        
+        if(query.getSorters() != null) {
+            
+            queryStr += " ORDER BY";
+            
+            for(Sorter sorter : query.getSorters()) {
+                
+                queryStr += " " 
+                        + WorkerParameter.toColumnName( sorter.getParam()) 
+                        + " " 
+                        + sorter.getMode().value()
+                        + ",";
+            }
+            
+            queryStr = queryStr.substring(0, queryStr.length() - 1);
+            
+        }
+        
+        if(query.getPageSize() != null) {
+            queryStr += " LIMIT " +  query.getPageSize();
+        }
+        
+        if(query.getPage() != null) {
+            queryStr += " OFFSET " + query.getPage();
+        }
+        
+        queryStr += ";";
+        
+        try{
+            begin();
+            
+            ArrayList<Worker> listWorkers = (ArrayList<Worker>)entityManager
+                    .createNativeQuery(queryStr, Worker.class)
+                    .getResultList();
+            
             commit();
             
             return new ServiceResponse(ServiceResponseStatus.SUCCESS,
@@ -213,16 +348,18 @@ public class WorkerService {
     public ServiceResponse groupByName() {
         try{
             begin();
+            
             List<Object[]> listWorkers = entityManager
                     .createQuery(
                             "SELECT a.name, COUNT(a) FROM Worker a GROUP BY a.name ")
                     .getResultList();
+            
             commit();
+            
             List<GroupName> groupNames = listWorkers.stream()
                 .map(row -> new GroupName((String) row[0], ((Number) row[1]).longValue()))
                 .collect(Collectors.toList());
             
-            System.out.println(groupNames);
             return new ServiceResponse(ServiceResponseStatus.SUCCESS,
                                         new GroupNameWrapper(groupNames));
         } catch( Exception e) {
@@ -232,13 +369,68 @@ public class WorkerService {
         
     }
     
+     public ServiceResponse groupByName(String name, Long value, String sort, Long page, Long pageSize) {
+        try{
+            String queryStr = "select name, count(*) from worker group by name";
+            
+            if(name!= null || value != null) {
+                queryStr += " having ";
+                if(name != null) queryStr += "name = " + name;
+                if(value != null) 
+                    queryStr += 
+                            (name != null) ? 
+                            ("and count(*) = " + value) 
+                            : ("count(*) = " + value); 
+            }
+            
+            if(sort != null) {
+                queryStr += " order by ";
+                for(String sorter : sort.split(",")) {
+                    if(sorter.charAt(0) == '-') {
+                        queryStr += sorter.substring(1) + " DESC, ";
+                    } else {
+                        queryStr += sorter + " ASC, ";
+                    }
+                }
+                queryStr = queryStr.substring(0, queryStr.length() - 2);
+            }
+            
+            if( page != null) queryStr += " limit " + page;
+            if(pageSize != null) queryStr += " offset " + pageSize;
+            queryStr += ";";
+            
+            begin();
+            
+            List<Object[]> listWorkers = entityManager
+                    .createNativeQuery(
+                            queryStr)
+                    .getResultList();
+            
+            commit();
+            
+            List<GroupName> groupNames = listWorkers.stream()
+                .map(row -> new GroupName((String) row[0], ((Number) row[1]).longValue()))
+                .collect(Collectors.toList());
+            
+            return new ServiceResponse(ServiceResponseStatus.SUCCESS,
+                                        new GroupNameWrapper(groupNames));
+        } catch( Exception e) {
+            e.printStackTrace();
+           return new ServiceResponse(ServiceResponseStatus.INTERNAL_ERROR);
+        }
+        
+    }
+     
     public ServiceResponse getAvgSalary() {
         try{
+            
             begin();
+            
             BigDecimal avgSalary = (BigDecimal)entityManager
                     .createNativeQuery(
                             "SELECT AVG(a.salary) FROM Worker a")
                     .getSingleResult();
+            
             commit();
             
             return new ServiceResponse(ServiceResponseStatus.SUCCESS,
@@ -251,33 +443,46 @@ public class WorkerService {
     
     public ServiceResponse updateStatus(long id, Status status) {
         try{
+            
             begin();
+            
             Worker worker = (Worker)entityManager
                     .find(Worker.class, id);
+            
             if(worker == null) 
                 return new ServiceResponse(ServiceResponseStatus.FAIL);
+            
             worker.setStatus(status);
+            
             entityManager.merge(worker);
+            
             commit();
             
             return new ServiceResponse(ServiceResponseStatus.SUCCESS);
         } catch( Exception e) {
-            e.printStackTrace();
            return new ServiceResponse(ServiceResponseStatus.INTERNAL_ERROR);
         }
     }
  
     public ServiceResponse updateOrganization(long id, long orgId) {
         try{
+            
             begin();
+            
             Worker worker = (Worker)entityManager
                     .find(Worker.class, id);
+            
             if(worker == null)
                 return new ServiceResponse(ServiceResponseStatus.FAIL);
+            
             worker.setOrganization(orgId);
+            
             entityManager.merge(worker);
+            
             commit();
+            
             return new ServiceResponse(ServiceResponseStatus.SUCCESS);
+            
         } catch( Exception e) {
             e.printStackTrace();
            return new ServiceResponse(ServiceResponseStatus.INTERNAL_ERROR);
@@ -286,15 +491,24 @@ public class WorkerService {
     
     public ServiceResponse isBelongToOrganization(Long id, Long orgId) {
         try{
+            
             begin();
+            
             Worker worker = (Worker)entityManager
                     .find(Worker.class, id);
+            
             if(worker == null)
-                return new ServiceResponse(ServiceResponseStatus.INVALID_PARAMETER, "Worker is found");
+                return new ServiceResponse(ServiceResponseStatus.INVALID_PARAMETER, "Worker is not found");
+            
             commit();
+            
             if(worker.getOrganization() == orgId) 
                 return new ServiceResponse(ServiceResponseStatus.SUCCESS);
-            return new ServiceResponse(ServiceResponseStatus.INVALID_PARAMETER, "Worker is not working for organization with id" + orgId);
+            
+            return new ServiceResponse(
+                    ServiceResponseStatus.INVALID_PARAMETER, 
+                    "Worker is not working for organization with id" + orgId);
+            
         } catch( Exception e) {
             e.printStackTrace();
            return new ServiceResponse(ServiceResponseStatus.INTERNAL_ERROR);

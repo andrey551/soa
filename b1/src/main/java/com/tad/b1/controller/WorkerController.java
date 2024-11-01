@@ -7,16 +7,15 @@ import com.tad.b1.dto.Wrapper.GroupNameWrapper;
 import com.tad.b1.entity.Worker;
 import com.tad.b1.dto.Wrapper.WorkerListWrapper;
 import com.tad.b1.dto.data.ServiceResponse;
-import com.tad.b1.dto.entityDto.CoordinateDTO;
-import com.tad.b1.dto.entityDto.PersonDTO;
 import com.tad.b1.dto.entityDto.WorkerDTO;
-import com.tad.b1.entity.enums.Color;
-import com.tad.b1.entity.enums.Status;
+import com.tad.b1.dto.query.Filter;
+import com.tad.b1.dto.query.QueryParameter;
+import com.tad.b1.dto.query.Sorter;
+import com.tad.b1.entity.enums.SortMode;
 import com.tad.b1.entity.enums.WorkerParameter;
 import com.tad.b1.entity.response.ServiceResponseStatus;
 import com.tad.b1.service.WorkerService;
 import com.tad.b1.utils.XmlService;
-import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -25,12 +24,11 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
-
 /**
  *
  * @author Dau Cong Tuan Anh
@@ -42,16 +40,51 @@ public class WorkerController {
     
     @GET
     @Path("/")
-    public Response getWorkers() {
+    @Produces({ MediaType.APPLICATION_XML})
+    @Consumes({MediaType.APPLICATION_XML})
+    public Response getWorkers(
+                                @QueryParam("filter[id]") String id,
+                                @QueryParam("filter[name]") String name,
+                                @QueryParam("filter[creationDate]") String creationDate,
+                                @QueryParam("filter[salary]") String salary,
+                                @QueryParam("filter[startDate]") String startDate,
+                                @QueryParam("filter[endDate]") String endDate,
+                                @QueryParam("filter[status]") String status,
+                                @QueryParam("sort") String sort,
+                                @QueryParam("page") Integer page,
+                                @QueryParam("pageSize") Integer pageSize) {
+        QueryParameter queryParameter = new QueryParameter();
         
-        ServiceResponse resp = ws.getWorkers();
+        List<Filter> filterList = new ArrayList<>();
+        if(id != null) filterList.add(new Filter(WorkerParameter.ID, id));
+        if(name != null) filterList.add(new Filter(WorkerParameter.NAME, name));
+        if(creationDate != null) filterList.add(new Filter(WorkerParameter.CREATION_DATE, creationDate));
+        if(salary != null) filterList.add(new Filter(WorkerParameter.SALARY, salary));
+        if(startDate != null) filterList.add(new Filter(WorkerParameter.START_DATE, startDate));
+        if(endDate != null) filterList.add(new Filter(WorkerParameter.END_DATE, endDate));
+        if(status != null) filterList.add(new Filter(WorkerParameter.STATUS, status));
+        
+        queryParameter.setFilters(filterList);
+        
+        if(sort != null) {
+            queryParameter.setSorters(getSorterList(sort));
+        }
+        
+        if(page != null) {
+            queryParameter.setPage(page);
+        }
+        
+        if(pageSize != null) {
+            queryParameter.setPageSize(pageSize);
+        }
+        
+        ServiceResponse resp = ws.getWorkers(queryParameter);
         
         if(resp.getStatus() != ServiceResponseStatus.SUCCESS) 
             return Response.status(resp.getResponseCode()).build();
         
         WorkerListWrapper workers = (WorkerListWrapper)resp.getData();
-        System.out.println(workers.getWorkers().size());
-        System.out.println(XmlService.marshalArray(workers));
+
         return Response.ok(XmlService.marshalArray(workers)).build();
     }
     
@@ -68,6 +101,7 @@ public class WorkerController {
             return Response.status(resp.getResponseCode()).build();
         
         Worker worker = (Worker)resp.getData();
+        System.out.println(worker.toString());
         
         return Response.ok(XmlService.marshal(worker)).build();
     }
@@ -82,7 +116,9 @@ public class WorkerController {
         List<WorkerParameter> isValid = worker.handleValidate();
         
         if(!isValid.isEmpty()) {
+            
             String message = "<message>" + "these parameter has invalid: " + isValid.toString() +"</message>";
+            
             return Response.status(400).entity(message).build();
         }
         ServiceResponse resp = ws.updateWorker(id, worker);
@@ -113,12 +149,14 @@ public class WorkerController {
             String message = "<message>" + "these parameter has invalid: " + isValid.toString() +"</message>";
             return Response.status(400).entity(message).build();
         }
+        
         ServiceResponse resp = ws.insertWorker(worker);
         
         if(resp.getStatus() != ServiceResponseStatus.SUCCESS) 
             return Response.status(resp.getResponseCode()).build();
         
-        System.out.println((Worker)(resp.getData()));
+        Worker worker1 = (Worker)(resp.getData());
+        
         return Response.ok(
                 XmlService.marshal(
                         (Worker)(resp.getData())
@@ -129,12 +167,49 @@ public class WorkerController {
     @Path("low-salary/{salary}")
     @Produces({ MediaType.APPLICATION_XML})
     @Consumes({MediaType.APPLICATION_XML})
-    public Response getLowSalary(@PathParam("salary")Integer salary) {
+    public Response getLowSalary(@PathParam("salary")Integer salary,
+                                @QueryParam("filter[id]") String id,
+                                @QueryParam("filter[name]") String name,
+                                @QueryParam("filter[creationDate]") String creationDate, 
+                                @QueryParam("filter[startDate]") String startDate,
+                                @QueryParam("filter[endDate]") String endDate,
+                                @QueryParam("filter[status]") String status,
+                                @QueryParam("sort") String sort,
+                                @QueryParam("page") Integer page,
+                                @QueryParam("pageSize") Integer pageSize) {
+        
         if(salary == null) {
+            
             String message = "<message> Salary is invalid! </message>";
+            
             return Response.status(400).entity(message).build();
         }
-        ServiceResponse resp = ws.getLowerSalaryWorker(salary);
+        
+        QueryParameter queryParameter = new QueryParameter();
+        
+        List<Filter> filterList = new ArrayList<>();
+        if(id != null) filterList.add(new Filter(WorkerParameter.ID, id));
+        if(name != null) filterList.add(new Filter(WorkerParameter.NAME, name));
+        if(creationDate != null) filterList.add(new Filter(WorkerParameter.CREATION_DATE, creationDate));
+        if(startDate != null) filterList.add(new Filter(WorkerParameter.START_DATE, startDate));
+        if(endDate != null) filterList.add(new Filter(WorkerParameter.END_DATE, endDate));
+        if(status != null) filterList.add(new Filter(WorkerParameter.STATUS, status));
+        
+        queryParameter.setFilters(filterList);
+        
+        if(sort != null) {
+            queryParameter.setSorters(getSorterList(sort));
+        }
+        
+        if(page != null) {
+            queryParameter.setPage(page);
+        }
+        
+        if(pageSize != null) {
+            queryParameter.setPageSize(pageSize);
+        }
+        
+        ServiceResponse resp = ws.getLowerSalaryWorker(salary, queryParameter);
         
         if(resp.getStatus() != ServiceResponseStatus.SUCCESS) 
             return Response.status(resp.getResponseCode()).build();
@@ -148,9 +223,13 @@ public class WorkerController {
     @Path("group-by-name")
     @Produces({ MediaType.APPLICATION_XML})
     @Consumes({MediaType.APPLICATION_XML})
-    public Response groupByName() {
+    public Response groupByName( @QueryParam("filter[name]") String name,
+                                 @QueryParam("filter[value]") Long value,
+                                 @QueryParam("sort") String sort,
+                                 @QueryParam("page") Long page,
+                                 @QueryParam("pageSize") Long pageSize) {
         
-        ServiceResponse resp = ws.groupByName();
+        ServiceResponse resp = ws.groupByName(name, value, sort, page, pageSize);
         
         if(resp.getStatus() != ServiceResponseStatus.SUCCESS) 
             return Response.status(resp.getResponseCode()).build();
@@ -209,4 +288,25 @@ public class WorkerController {
         
         return Response.status(resp.getResponseCode()).entity(resp.getData()).build();
     }
+    
+    public List<Sorter> getSorterList(String query) {
+        List<Sorter> res = new ArrayList<>();
+        SortMode sortMode;
+        
+        for(String param: query.split(",")) {
+            sortMode = SortMode.ASC;
+            if(param.charAt(0) == '-') {
+                sortMode = SortMode.DESC;
+                param = param.substring(1);
+            }
+            Sorter toAdd = new Sorter(WorkerParameter.convert(param), sortMode);
+            if(toAdd != null) {
+                res.add(toAdd);
+            }
+        }
+        
+        return res;
+    }
+    
+    
 }

@@ -2,6 +2,7 @@
 package com.tad.b1.entity;
 
 import com.tad.b1.controller.LocalDateAdapter;
+import com.tad.b1.controller.ZonedDateTimeAdapter;
 import com.tad.b1.dto.entityDto.WorkerDTO;
 import com.tad.b1.entity.enums.Status;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -36,6 +37,7 @@ public class Worker implements Serializable {
     @JoinColumn(name="coordinate_id",referencedColumnName = "id" )
     private Coordinate coordinate;
     
+    @Column(name = "creationDate")
     private ZonedDateTime creationDate;
     
     @Column(name="salary")
@@ -194,6 +196,11 @@ public class Worker implements Serializable {
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     public LocalDate getEndDate() {
         return this.endDate;
+    }
+    
+    @XmlJavaTypeAdapter(ZonedDateTimeAdapter.class)
+    public ZonedDateTime getCreationDate() {
+        return this.creationDate;
     }
     
     

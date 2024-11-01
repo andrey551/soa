@@ -1,5 +1,5 @@
 
-package com.tad.b1.dto.data;
+package com.tad.b1.dto.query;
 
 import com.tad.b1.entity.enums.WorkerParameter;
 import lombok.Data;

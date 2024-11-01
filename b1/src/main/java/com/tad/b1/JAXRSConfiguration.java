@@ -12,7 +12,7 @@ import jakarta.ws.rs.core.Application;
  * Configures JAX-RS for the application.
  * @author Juneau
  */
-@ApplicationPath("/resources")
+@ApplicationPath("/v1")
 public class JAXRSConfiguration extends Application {
     private Set<Object> singletons = new HashSet<Object>();
     

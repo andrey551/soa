@@ -41,7 +41,7 @@ public class Person implements Serializable {
         this.id = id;
     }
     
-    public void setWeight(long weight) {
+    public void setWeight(Long weight) {
         this.weight = weight;
     }
     
@@ -98,6 +98,14 @@ public class Person implements Serializable {
                 dto.getPassportID(), 
                 dto.getEyeColor(), 
                 dto.getHairColor());
+    }
+    
+    @Override
+    public String toString() {
+        return "weight: " + this.getWeight() 
+                + ", passport id: " + this.getPassportId() 
+                + ", eye color: " + this.getEyeColor() 
+                + ", hair color: " + this.getHairColor();
     }
     
 }
