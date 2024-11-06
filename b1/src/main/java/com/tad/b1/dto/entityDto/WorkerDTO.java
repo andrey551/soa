@@ -156,7 +156,7 @@ public class WorkerDTO {
         
         if(status == null) res.add(WorkerParameter.STATUS);
         
-        if(person.getWeight() <= 0) res.add(WorkerParameter.WEIGHT);
+        if(person.getWeight() != null && person.getWeight() <= 0) res.add(WorkerParameter.WEIGHT);
         
         if(person.getPassportID() == null) res.add(WorkerParameter.PASSPORT_ID);
         

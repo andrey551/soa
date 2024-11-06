@@ -19,7 +19,7 @@ import lombok.Data;
 @XmlRootElement(name = "Coordinate")
 public class Coordinate implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id")
     private long id;
     

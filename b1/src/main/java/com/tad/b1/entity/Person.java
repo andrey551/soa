@@ -19,7 +19,7 @@ import lombok.Getter;
 @XmlRootElement(name = "Person")
 public class Person implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id")
     private long id;
     

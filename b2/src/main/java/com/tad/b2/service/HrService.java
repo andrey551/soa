@@ -3,12 +3,8 @@ package com.tad.b2.service;
 
 import com.tad.b2.dto.ChangeOrganizationRequest;
 import com.tad.b2.dto.ChangeStatusRequest;
-import com.tad.b2.entity.Organization;
 import com.tad.b2.entity.enums.Status;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
@@ -23,13 +19,14 @@ import jakarta.ws.rs.core.Response;
 @ApplicationScoped
 public class HrService {
     
-    private static String FIRE_REQUEST_URL = "http://127.0.0.1:8080/b1-1.0/resources/workers/status";
-    private static String MOVE_REQUEST_URL = "http://127.0.0.1:8080/b1-1.0/resources/workers/org";
-    private static String CHECK_VALID_EMPLOYEE = "http://127.0.0.1:8080/b1-1.0/resources/workers/check/";
+    private static String FIRE_REQUEST_URL = "https://127.0.0.1:18443/api/v1/workers/status";
+    private static String MOVE_REQUEST_URL = "https://127.0.0.1:18443/api/v1/workers/org";
+    private static String CHECK_VALID_EMPLOYEE = "https://127.0.0.1:18443/api/v1/workers/check/";
     
     private static int SUCCESS = 200;
     
     Client client = ClientBuilder.newClient();
+    
 
     public Response fireEmployee(long emId) {
         

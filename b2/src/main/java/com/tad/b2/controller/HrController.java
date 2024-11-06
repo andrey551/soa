@@ -11,7 +11,7 @@ import jakarta.ws.rs.core.Response;
  *
  * @author Dau Cong Tuan Anh
  */
-@Path("/HRs")
+@Path("/hrs")
 public class HrController {
     private HrService hs = new HrService();
     
@@ -24,7 +24,7 @@ public class HrController {
     
     @GET
     @Path("move/{worker-id}/{id-from}/{id-to}")
-    public Response fireEmployee(@PathParam(value = "worker-id") long id,
+    public Response moveEmployee(@PathParam(value = "worker-id") long id,
                                  @PathParam(value = "id-from") long from,
                                  @PathParam(value = "id-to") long to) {
         return hs.moveEmployee(id, from, to);

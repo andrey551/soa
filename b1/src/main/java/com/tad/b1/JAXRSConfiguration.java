@@ -1,6 +1,7 @@
 package com.tad.b1;
 
 import com.tad.b1.controller.WorkerController;
+import com.tad.b1.filter.CORSFilter;
 import com.tad.b1.resources.JavaEE8Resource;
 import java.util.HashSet;
 import java.util.Map;
@@ -19,6 +20,7 @@ public class JAXRSConfiguration extends Application {
     public JAXRSConfiguration() {
         singletons.add(new WorkerController());
         singletons.add(new JavaEE8Resource());
+        singletons.add(new CORSFilter());
     }
     
     @Override
