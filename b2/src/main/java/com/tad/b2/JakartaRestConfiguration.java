@@ -1,7 +1,7 @@
 package com.tad.b2;
 
 import com.tad.b2.controller.HrController;
-import com.tad.b2.filter.CORSFilter;
+//import com.tad.b2.filter.CORSFilter;
 import com.tad.b2.resources.JakartaEE10Resource;
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
@@ -18,8 +18,9 @@ public class JakartaRestConfiguration extends Application {
     private Set<Object> singletons = new HashSet<Object>();
     
     public JakartaRestConfiguration() {
+//        singletons.add(new CORSFilter());
         singletons.add(new HrController());
-        singletons.add(new CORSFilter());
+        
     }
     
     @Override
@@ -30,7 +31,7 @@ public class JakartaRestConfiguration extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         return super.getClasses();
-//          return Set.of(HrController.class);
+//          return Set.of(CORSFilter.class);
     }
 
     @Override
