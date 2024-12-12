@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: config
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/andrey551/cloud_config.git
+          username: username
+          password: password
+          default-label: main
+          clone-on-start: true
+  security:
+    user:
+      name: tad
+      password: tad
+
+server:
+  port: 8888

@@ -1,0 +1,19 @@
+server:
+  port: 8761
+  servlet:
+    context-path: /
+eureka:
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+  instance:
+    hostname: eureka server
+    preferIpAddress: true
+    ip-address: 127.0.0.1
+spring:
+  application:
+    name:eureka server
+logging:
+  level:
+    com.netflix.discovery: DEBUG
+    org.springframework.cloud.netflix.eureka: DEBUG

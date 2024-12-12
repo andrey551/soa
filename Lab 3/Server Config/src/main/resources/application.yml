@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: CLIENT
+  profiles:
+    active: development
+  config:
+    import: optional:configserver:http://tad:tad@localhost:8888
+server:
+  port: 8084
