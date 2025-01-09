@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="0505496b-cbe5-4980-8900-1091c8f28c40" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="fireEmployee" doc:id="71c4fcce-0edf-4027-ac70-fe5fe20a65e3" >
+		<http:listener doc:name="Listener" doc:id="47aeeb51-b3e8-400c-aa09-a6775e0a2f81" config-ref="HTTP_Listener_config" path="/fire"/>
+		<logger level="INFO" doc:name="Logger" doc:id="e95b6155-a045-4fb3-a5e7-6dab6a74bb87" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="b0454819-7690-4bfa-b2f0-21c53decc728" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0ns ns0 http://schemas.xmlsoap.org/soap/envelope/
+ns ns1 http://services.node2.tad.com/
+
+output application/xml
+---
+{
+	ChangeStatusRequest: {
+		id: payload.ns0#Envelope.ns0#Body.ns1#fireEmployee.ns1#id,
+		status: "FIRED"
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="PUT" doc:name="Request" doc:id="30312836-06b3-4ca3-875b-7dbcb83349cd" url="http://localhost:18080/b1/v1/workers/status">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"Key" : "Value"
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="39c31e9c-9ab2-4043-a08f-22335a1a3aa3" message="Request sent!"/>
+	</flow>
+	<flow name="ChangeOrg" doc:id="6207e829-cb71-4bf2-a7e9-33459fced3cf" >
+		<http:listener doc:name="Listener" doc:id="89feec07-aaf8-4a14-9a13-863d049e546b" config-ref="HTTP_Listener_config" path="change" responseStreamingMode="ALWAYS">
+			<ee:repeatable-file-store-stream bufferUnit="MB" />
+			<reconnect-forever />
+		</http:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="193bf8c7-43b0-4ca2-9a9b-43e5caa98d07" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="02921060-92be-4cff-8e53-809e465372f9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0ns ns0 http://services.node2.tad.com/
+ns ns1 http://schemas.xmlsoap.org/soap/envelope/
+
+output application/java
+---
+{
+	data: {
+		id: payload.ns1#Envelope.ns1#Body.ns0#changeOrganization.ns0#id,		from_id: payload.ns1#Envelope.ns1#Body.ns0#changeOrganization.ns0#"from-id",		to_id: payload.ns1#Envelope.ns1#Body.ns0#changeOrganization.ns0#"to-id"
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="e38fc238-8a6b-4c07-9f0f-9ee26e5f9eae" message="#[payload.data]" />
+		<set-variable value="#[payload.data]" doc:name="Set Variable" doc:id="e6bea43c-5ae4-4776-807f-ac72daa048ab" variableName="ReqData"/>
+		<logger level="INFO" doc:name="Logger" doc:id="e0a81e29-c7c6-42e7-a6d7-17b8b6fbb9ee" message="#[&quot;http://localhost:8091/workers/check/&quot; ++ vars.ReqData.'id' ++ &quot;/&quot; ++ vars.ReqData.&quot;from_id&quot;]" />
+		<http:request method="GET" doc:name="Request" doc:id="82483202-8ecd-4919-b78b-55b3fe3f8d7c" url="#[&quot;http://localhost:18080/b1/v1/workers/check/&quot; ++ vars.ReqData.'id' ++ &quot;/&quot; ++ vars.ReqData.&quot;from_id&quot;]">
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="b6a69b39-6add-4c06-afbb-a5ea180e6c06" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+	ChangeOrganizationRequest: {
+		id: vars.ReqData.'id',
+		emId: vars.ReqData.'to_id'
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="PUT" doc:name="Request" doc:id="152bf07d-8aa0-4ea0-b026-c29efe838fe6" url="http://localhost:18080/b1/v1/workers/org"/>
+		<logger level="INFO" doc:name="Logger" doc:id="18267c9e-ad95-4e57-8744-61557466e1b2" message="Change Organization success!"/>
+	</flow>
+</mule>
