@@ -6,6 +6,7 @@
 5. Export mule project to .jar:
 - Right click to your project on Package Explorer -> Export
 - Mule -> Anypoint Studio Project to Mule Deployable Archive
-- Name your JAR file, tick Attach project source ad Include project ...
+- Name your JAR file, tick Attach project source and Include project ...
 - Finish
- 6. Run Mule standalone mode by  run $MULE_HOME/bin/mule(.bat)
+6. Copy exported .jar to  $MULE_HOME/app/{your_project}
+7. Run Mule standalone mode by  run $MULE_HOME/bin/mule(.bat)
