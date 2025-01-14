@@ -3,6 +3,8 @@ package com.tad.node2.repositories;
 
 import org.springframework.stereotype.Component;
 
+import com.sun.xml.messaging.saaj.soap.ver1_1.Message1_1Impl;
+
 import jakarta.xml.soap.MessageFactory;
 import jakarta.xml.soap.SOAPBody;
 import jakarta.xml.soap.SOAPConnection;
@@ -15,7 +17,7 @@ import jakarta.xml.soap.SOAPPart;
 
 @Component
 public class HrRepository {
-	public void fireEmployee(Long id) {
+	public int fireEmployee(Long id) {
 		SOAPConnectionFactory soapConnectionFactory;
 		try {
 			soapConnectionFactory = SOAPConnectionFactory.newInstance();
@@ -23,27 +25,35 @@ public class HrRepository {
 			String url = "http://localhost:8081/fire";
 			SOAPMessage soapMessage = createFireRequest(id);
 			SOAPMessage soapResponse = soapConnection.call(soapMessage, url);
+			int responseCode =  Integer.parseInt(soapResponse.getSOAPBody().getTextContent());
 			soapConnection.close();
+			return responseCode;
 		} catch (UnsupportedOperationException | SOAPException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		return 500;
         
 	}
 	
-	public void changeOrg(Long id, Long from_id, Long to_id) {
+	public int changeOrg(Long id, Long from_id, Long to_id) {
 		SOAPConnectionFactory soapConnectionFactory;
 		try {
 			soapConnectionFactory = SOAPConnectionFactory.newInstance();
 			SOAPConnection soapConnection = soapConnectionFactory.createConnection();
 			String url = "http://localhost:8081/change";
 			SOAPMessage soapMessage = createChangeRequest(id, from_id, to_id);
+//			SOAPMessage soapResponse = soapConnection.call(soapMessage, url);
 			SOAPMessage soapResponse = soapConnection.call(soapMessage, url);
+			int responseCode =  Integer.parseInt(soapResponse.getSOAPBody().getTextContent());
 			soapConnection.close();
+			return responseCode;
 		} catch (UnsupportedOperationException | SOAPException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return 500;
 	}
 	
 	private static SOAPMessage createFireRequest(Long id) {
